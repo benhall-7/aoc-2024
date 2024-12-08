@@ -1,13 +1,11 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
+
+use itertools::Itertools;
 
 #[derive(Debug, Clone)]
 struct Map {
     size: (usize, usize),
     nodes: HashMap<char, Vec<(usize, usize)>>,
-}
-
-fn consec(a: usize, b: usize) -> isize {
-    (2 * b as isize) - (a as isize)
 }
 
 impl Map {
@@ -42,80 +40,58 @@ impl Map {
             && coord.1 < self.size.1 as isize
     }
 
-    fn in_line(a: (usize, usize), b: (usize, usize), c: (usize, usize)) -> bool {
+    fn consec(a: usize, b: usize) -> isize {
+        (2 * b as isize) - (a as isize)
+    }
+
+    fn collinear(a: (usize, usize), b: (usize, usize), c: (usize, usize)) -> bool {
         let vec_1 = ((b.0 as isize - a.0 as isize), (b.1 as isize - a.1 as isize));
         let vec_2 = ((c.0 as isize - a.0 as isize), (c.1 as isize - a.1 as isize));
-        // parallel when magnitude of cross-product is 0
+        // check when magnitude of cross-product is 0
         vec_1.0 * vec_2.1 - vec_1.1 * vec_2.0 == 0
     }
 
     fn aligned(&self, coords: (usize, usize)) -> bool {
-        self.nodes.iter().any(|(_, (locs))| {
-            for i in 0..locs.len() {
-                for j in 0..i {
-                    let a = locs[i];
-                    let b = locs[j];
-                    if Self::in_line(a, b, coords) {
-                        return true;
-                    }
-                }
-            }
-            false
+        self.nodes.iter().any(|(_, locs)| {
+            locs.iter()
+                .tuple_combinations()
+                .any(|(loc_a, loc_b)| Self::collinear(*loc_a, *loc_b, coords))
         })
     }
 
     pub fn antinodes_1(&self) -> Vec<(usize, usize)> {
         self.nodes
             .iter()
-            .fold(Vec::new(), |mut antinodes, (_, locs)| {
-                for i in 0..locs.len() {
-                    for j in 0..i {
-                        let a = locs[i];
-                        let b = locs[j];
-                        let anti_1 = (consec(a.0, b.0), consec(a.1, b.1));
-                        let anti_2 = (consec(b.0, a.0), consec(b.1, a.1));
-                        if self.in_bounds(anti_1) {
-                            antinodes.push((anti_1.0 as usize, anti_1.1 as usize));
-                        }
-                        if self.in_bounds(anti_2) {
-                            antinodes.push((anti_2.0 as usize, anti_2.1 as usize));
-                        }
-                    }
-                }
-                antinodes
+            .flat_map(|(_, locs)| {
+                locs.iter().tuple_combinations().flat_map(|(a, b)| {
+                    [
+                        (Self::consec(a.0, b.0), Self::consec(a.1, b.1)),
+                        (Self::consec(b.0, a.0), Self::consec(b.1, a.1)),
+                    ]
+                    .into_iter()
+                    .filter(|coords| self.in_bounds(*coords))
+                    .map(|(y, x)| (y as usize, x as usize))
+                })
             })
+            .unique()
+            .collect()
     }
 
     pub fn antinodes_2(&self) -> Vec<(usize, usize)> {
-        let mut positions = Vec::new();
-        for y in 0..self.size.0 {
-            for x in 0..self.size.1 {
-                if self.aligned((y, x)) {
-                    positions.push((y, x));
-                }
-            }
-        }
-
-        positions
+        (0..self.size.0)
+            .cartesian_product(0..self.size.1)
+            .filter(|coords| self.aligned(*coords))
+            .collect()
     }
 }
 
 fn part_1() {
-    let antis = Map::new_from_file()
-        .antinodes_1()
-        .iter()
-        .map(|coord| {
-            println!("coord: {:#?}", coord);
-            *coord
-        })
-        .collect::<HashSet<_>>();
-
-    println!("{}", antis.len());
+    let count = Map::new_from_file().antinodes_1().len();
+    println!("{count}");
 }
 
 fn part_2() {
     let count = Map::new_from_file().antinodes_2().len();
-
     println!("{count}");
 }
 
