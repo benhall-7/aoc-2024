@@ -1,0 +1,55 @@
+BaaaaaaaB
+aaaBaBaaa
+aaBa~aBaa
+aaa~~~aaa
+aaBaaaBaB
+aaaaBaaB!
+BaaaB!!!!
+
+
+Number of edges = number of vertices, even if hollow
+
+total = 16
+Outside = 8
+Inside = 8
+
+...
+aA.
+...
+
+2 convex vertices
+
+...
+aA.
+aa.
+
+1 convex vertex
+
+...
+aA.
+.a.
+
+1 concave vertex and 1 convex vertex
+
+a point can have up to 4 concave vertices.
+Each can be found by rotating the following scheme 90 degrees
+
+Aa
+a.
+
+each point can have 0, 1, 2, or 4 vertexes
+ .
+.A. = 4
+ .
+
+ .
+aA. = 2
+ .
+
+ a
+aA.  = 1 (or also flipped vertically)
+ .
+
+ a
+.A = 0
+ a
