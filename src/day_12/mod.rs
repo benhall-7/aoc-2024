@@ -92,6 +92,19 @@ impl Region {
         self.coords.len()
     }
 
+    fn get_4_neighbors(&self, coord: (usize, usize)) -> [Neighbor; 4] {
+        [
+            (coord.0.wrapping_sub(1), coord.1),
+            (coord.0, coord.1 + 1),
+            (coord.0 + 1, coord.1),
+            (coord.0, coord.1.wrapping_sub(1)),
+        ]
+        .map(|(y, x)| Neighbor {
+            coord: (y, x),
+            present: self.coords.contains(&(y, x)),
+        })
+    }
+
     fn get_8_neighbors(&self, coord: (usize, usize)) -> [Neighbor; 8] {
         [
             (coord.0.wrapping_sub(1), coord.1.wrapping_sub(1)),
@@ -110,57 +123,46 @@ impl Region {
     }
 
     pub fn num_sides(&self) -> usize {
-        // start anywhere on one of the left-most points
-        let min_x = self.coords.iter().map(|coord| coord.1).min().unwrap();
-        let start = self
-            .coords
+        // number of vertexes = number of edges
+        // thanks Euler!
+        self.coords
             .iter()
-            .filter(|coord| coord.1 == min_x)
-            .nth(0)
-            .unwrap();
+            .map(|coord| {
+                let neighbors_8 = self.get_8_neighbors(*coord);
+                let concave_vertices = (0..4)
+                    .into_iter()
+                    .filter(|&dir| {
+                        // condition for a concave vertex to be made
+                        let start = dir * 2 + 1;
+                        let between = (start + 1) % 8;
+                        let end = (between + 1) % 8;
+                        neighbors_8[start].present
+                            && !neighbors_8[between].present
+                            && neighbors_8[end].present
+                    })
+                    .count();
 
-        // begin by facing upward
-        let mut seen: HashSet<Machine> = HashSet::new();
-        let mut steps = vec![];
-        let mut machine = Machine {
-            coord: (*start),
-            direction: 0,
-        };
-
-        while !seen.contains(&machine) {
-            seen.insert(machine);
-            steps.push(machine);
-
-            let neighbors = self.get_8_neighbors(machine.coord);
-            // in front
-            if neighbors[1 + machine.direction * 2].present {
-                // front-left adjacent
-                if neighbors[machine.direction * 2].present {
-                    // move to the front-left adjacent position
-                    machine.coord = neighbors[machine.direction * 2].coord;
-                    // turn left 1/4 rotation
-                    machine.direction = (machine.direction + 3) % 4;
-                } else {
-                    // move forward
-                    machine.coord = neighbors[1 + machine.direction * 2].coord;
-                }
-            } else {
-                // turn right 1/4 rotation
-                machine.direction = (machine.direction + 1) % 4;
-            }
-        }
-
-        // stitch incoming
-        let stitch = (steps[0].direction != steps[steps.len() - 1].direction) as usize;
-        let count = steps
-            .into_iter()
-            .tuple_windows()
-            .filter(|(prev, curr)| prev.direction != curr.direction)
-            .count()
-            + stitch;
-
-        println!("shape sides = {count}");
-        count
+                let neighbors_4 = self.get_4_neighbors(*coord);
+                let valid_neighbors = neighbors_4
+                    .into_iter()
+                    .enumerate()
+                    .filter(|(_, neighbor)| neighbor.present)
+                    .map(|(ind, _)| ind)
+                    .collect::<Vec<_>>();
+                let convex_vertices = match valid_neighbors.len() {
+                    0 => 4,
+                    1 => 2,
+                    2 => {
+                        // if the two neighbors are not opposite each other
+                        // there's a single vertex
+                        // otherwise, no vertex
+                        ((valid_neighbors[1] - valid_neighbors[0]) != 2) as usize
+                    }
+                    _ => 0,
+                };
+                concave_vertices + convex_vertices
+            })
+            .sum()
     }
 }
 
@@ -168,12 +170,6 @@ impl Region {
 struct Neighbor {
     coord: (usize, usize),
     present: bool,
-}
-
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
-struct Machine {
-    pub coord: (usize, usize),
-    pub direction: usize,
 }
 
 pub fn part_1() {
