@@ -126,6 +126,6 @@ fn part_2() {
 }
 
 pub fn compute() {
-    // part_1();
+    part_1();
     part_2();
 }
