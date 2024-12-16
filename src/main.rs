@@ -15,7 +15,8 @@ mod day_12;
 mod day_13;
 mod day_14;
 mod day_15;
+mod day_16;
 
 fn main() {
-    day_15::compute();
+    day_16::compute();
 }
