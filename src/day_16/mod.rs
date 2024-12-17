@@ -161,12 +161,10 @@ impl Map {
             (Vector2::new(-1, 0), true),
         ]
         .into_iter()
-        // convert offsets to addresses
         .map(|(step, dir)| ((pos.map(|c| c as isize) + step).map(|c| c as usize), dir))
         .filter(|next| seen.contains_key(next))
         .filter(|next| {
-            // println!("neighbor cost: {}", seen[next]);
-            seen[next] < current_cost
+            seen[next] == current_cost - 1 - (next.1 != dir) as usize * 1000
         })
         .for_each(|next| self.get_path_after_2(next.0, next.1, seen, path));
     }
