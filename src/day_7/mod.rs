@@ -26,8 +26,8 @@ fn test_operation() {
 }
 
 fn get_input() -> Vec<(u64, Vec<u64>)> {
-    // let input = include_str!("input.txt");
-    let input = "7290: 6 8 6 15";
+    let input = include_str!("input.txt");
+    // let input = "7290: 6 8 6 15";
     input
         .lines()
         .map(|line| {
@@ -102,14 +102,14 @@ fn part_2() {
         .iter()
         .filter_map(|(target, operands)| {
             dfs_2(*target, operands[0], &operands[1..]).map(|ops| {
-                println!(
-                    "{}",
-                    ops.iter()
-                        .rev()
-                        .map(|op| format!("{:#?}", op))
-                        .collect::<Vec<String>>()
-                        .join(",")
-                );
+                // println!(
+                //     "{}",
+                //     ops.iter()
+                //         .rev()
+                //         .map(|op| format!("{:#?}", op))
+                //         .collect::<Vec<String>>()
+                //         .join(",")
+                // );
                 *target
             })
         })
