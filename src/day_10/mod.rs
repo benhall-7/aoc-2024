@@ -1,5 +1,3 @@
-use std::{array::IntoIter, iter::FlatMap};
-
 use itertools::Itertools;
 
 pub fn get_map() -> Vec<Vec<u8>> {
@@ -51,7 +49,7 @@ impl Map {
     pub fn dfs(&self, coord: (usize, usize)) -> Vec<(usize, usize)> {
         let val = self.get(coord);
         if val == 9 {
-            println!("{:#?}", coord);
+            // println!("{:#?}", coord);
             return vec![coord];
         }
         let map_height = self.height();
@@ -82,7 +80,7 @@ pub fn part_1() {
         .clone()
         .iter()
         .map(|&trailhead| {
-            println!("trailhead: {:#?}", trailhead);
+            // println!("trailhead: {:#?}", trailhead);
             map.dfs(trailhead).into_iter().unique().count()
         })
         .sum();
@@ -97,7 +95,7 @@ pub fn part_2() {
         .clone()
         .iter()
         .map(|&trailhead| {
-            println!("trailhead: {:#?}", trailhead);
+            // println!("trailhead: {:#?}", trailhead);
             map.dfs(trailhead).len()
         })
         .sum();

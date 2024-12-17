@@ -1,4 +1,4 @@
-use regex::{Regex, RegexBuilder};
+use regex::Regex;
 
 fn part_1() {
     let input = include_str!("input.txt");

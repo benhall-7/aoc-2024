@@ -71,12 +71,8 @@ impl ClawMachine {
         let int_solution = solution.map(|val| val.round() as usize);
 
         // check the integers solutions
-        (Matrix2::from_columns(&[self.a_step, self.b_step]) * int_solution == self.prize).then(
-            || {
-                println!("solution: {}", int_solution);
-                int_solution
-            },
-        )
+        (Matrix2::from_columns(&[self.a_step, self.b_step]) * int_solution == self.prize)
+            .then(|| int_solution)
     }
 }
 
