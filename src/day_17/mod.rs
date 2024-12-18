@@ -124,13 +124,7 @@ fn part_2() {
         solutions = solutions
             .into_iter()
             .flat_map(|sol| (0..8).into_iter().map(move |addend| addend + (sol << 3)))
-            .filter(|new_val| {
-                let computed = eval(*new_val);
-                // println!(
-                //     "possible solution: {new_val}; instr to match: {instr}; real val: {computed}"
-                // );
-                computed == instr
-            })
+            .filter(|new_val| eval(*new_val) == instr)
             .collect();
     }
 
