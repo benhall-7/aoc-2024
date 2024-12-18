@@ -23,6 +23,7 @@ mod day_14;
 mod day_15;
 mod day_16;
 mod day_17;
+mod day_18;
 
 #[derive(Parser)]
 struct Cli {
@@ -58,6 +59,7 @@ fn main() {
         day_15::compute,
         day_16::compute,
         day_17::compute,
+        day_18::compute,
     ];
 
     let day_arg = match cli.day.unwrap_or(Day::Last) {
@@ -80,6 +82,7 @@ fn main() {
             println!();
             let start_time = Instant::now();
             problem();
+            println!();
             println!("duration: {:?}", start_time.elapsed().as_secs_f64());
             println!();
         });
