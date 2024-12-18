@@ -101,7 +101,7 @@ fn part_2() {
     let sum: u64 = input
         .iter()
         .filter_map(|(target, operands)| {
-            dfs_2(*target, operands[0], &operands[1..]).map(|ops| {
+            dfs_2(*target, operands[0], &operands[1..]).map(|_| {
                 // println!(
                 //     "{}",
                 //     ops.iter()
