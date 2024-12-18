@@ -116,7 +116,7 @@ fn part_2() {
     let mut program = emu_base.program.clone();
     // let mut program = vec![3, 0];
     let end_instr = program.pop().unwrap();
-    let mut solutions = (0..256)
+    let mut solutions = (0..8)
         .into_iter()
         .filter(|top_byte| eval(*top_byte) == end_instr)
         .collect::<Vec<_>>();
