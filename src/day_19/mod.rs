@@ -53,9 +53,6 @@ pub fn compute() {
     let towels = get_towels();
     let designs = get_designs();
 
-    // let towels = HashSet::from(["ade", "b", "c", "bc"].map(String::from));
-    // let designs = vec!["adebc".to_string()];
-
     let count = designs
         .iter()
         .filter(|design| {
