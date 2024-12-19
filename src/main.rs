@@ -24,6 +24,7 @@ mod day_15;
 mod day_16;
 mod day_17;
 mod day_18;
+mod day_19;
 
 #[derive(Parser)]
 struct Cli {
@@ -60,6 +61,7 @@ fn main() {
         day_16::compute,
         day_17::compute,
         day_18::compute,
+        day_19::compute,
     ];
 
     let day_arg = match cli.day.unwrap_or(Day::Last) {
@@ -67,8 +69,6 @@ fn main() {
         Day::Last => Some(problems.len() as u8),
         Day::Day { day } => Some(day),
     };
-
-    println!("day arg: {:?}", day_arg);
 
     problems
         .iter()
