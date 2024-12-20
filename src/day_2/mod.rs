@@ -29,13 +29,13 @@ pub fn is_safe(list: &Vec<u32>) -> bool {
     true
 }
 
-pub fn part_1() {
+fn part_1() {
     let lists = get_lists();
     let safe_count: usize = lists.iter().filter(|&list| is_safe(list)).count();
     println!("{safe_count}");
 }
 
-pub fn part_2_brute() {
+fn part_2_brute() {
     let lists = get_lists();
     let safe_count: usize = lists
         .into_iter()

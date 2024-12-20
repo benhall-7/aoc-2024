@@ -80,7 +80,7 @@ fn solution_cost(solution: Vector2<usize>) -> usize {
     solution.x * 3 + solution.y
 }
 
-pub fn part_1() {
+fn part_1() {
     let solutions = get_machines()
         .iter()
         .enumerate()

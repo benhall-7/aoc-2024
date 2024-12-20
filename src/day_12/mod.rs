@@ -172,7 +172,7 @@ struct Neighbor {
     present: bool,
 }
 
-pub fn part_1() {
+fn part_1() {
     let map = Map::new_from_file();
     let cost: usize = (0..map.height())
         .cartesian_product(0..map.width())
@@ -189,7 +189,7 @@ pub fn part_1() {
     println!("1: {cost}");
 }
 
-pub fn part_2() {
+fn part_2() {
     let map = Map::new_from_file();
     let cost: usize = (0..map.height())
         .cartesian_product(0..map.width())

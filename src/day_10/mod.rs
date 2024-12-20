@@ -73,7 +73,7 @@ impl Map {
     }
 }
 
-pub fn part_1() {
+fn part_1() {
     let map = Map::new_from_file();
     let sum: usize = map
         .trailheads()
@@ -88,7 +88,7 @@ pub fn part_1() {
     println!("{sum}");
 }
 
-pub fn part_2() {
+fn part_2() {
     let map = Map::new_from_file();
     let sum: usize = map
         .trailheads()
