@@ -1,12 +1,12 @@
 use std::{
-    collections::{HashMap, HashSet, VecDeque},
+    collections::{HashMap, VecDeque},
     usize,
 };
 
+use itertools::Itertools;
 use nalgebra::Vector2;
 
 struct Map {
-    walls: HashSet<Vector2<isize>>,
     distances: HashMap<Vector2<isize>, usize>,
     start: Vector2<isize>,
 }
@@ -14,15 +14,12 @@ struct Map {
 impl Map {
     fn get_from_file() -> Self {
         let input = include_str!("input.txt");
-        let mut walls = HashSet::new();
         let mut distances = HashMap::new();
 
         let mut start = Vector2::default();
         input.lines().enumerate().for_each(|(y, line)| {
             line.char_indices().for_each(|(x, chr)| match chr {
-                '#' => {
-                    walls.insert(Vector2::new(x as isize, y as isize));
-                }
+                '#' => {}
                 '.' => {
                     distances.insert(Vector2::new(x as isize, y as isize), usize::MAX);
                 }
@@ -37,11 +34,7 @@ impl Map {
                 _ => panic!("invalid map cell"),
             })
         });
-        let mut map = Self {
-            walls,
-            distances,
-            start,
-        };
+        let mut map = Self { distances, start };
         map.set_distances();
         map
     }
@@ -72,105 +65,74 @@ impl Map {
             );
         }
     }
+
+    fn shortcut_lengths(
+        &self,
+        pos: Vector2<isize>,
+        dist: usize,
+        max_cheat: usize,
+        min_save: usize,
+    ) -> Vec<usize> {
+        let max = max_cheat as isize;
+        let cheat_range = (-max..=max)
+            .cartesian_product(-max..=max)
+            .filter(|(x, y)| x.abs() + y.abs() <= max);
+
+        cheat_range
+            .map(|(y, x)| Vector2::new(x, y))
+            .map(|offset| pos + offset)
+            .filter_map(|other| {
+                self.distances
+                    .get(&other)
+                    .cloned()
+                    .map(|dist| (dist, other))
+            })
+            .filter_map(|(other_dist, other)| {
+                let abs_distance = other_dist as isize - dist as isize;
+                let euclid = (other - pos).abs().sum();
+                let saved = abs_distance - euclid;
+                (saved >= min_save as isize).then(|| saved as usize)
+            })
+            .collect()
+    }
 }
 
 fn part_1() {
     let map = Map::get_from_file();
-    let shortcut_amounts = map
+    let max_cheat = 2;
+    let min_save = 100;
+
+    let shortcuts = map
         .distances
         .iter()
-        .flat_map(|(pos, dist)| {
-            [
-                Vector2::new(0, -2),
-                Vector2::new(2, 0),
-                Vector2::new(0, 2),
-                Vector2::new(-2, 0),
-            ]
-            .iter()
-            .map(|offset| pos + offset)
-            .filter_map(|nearby| map.distances.get(&nearby).cloned())
-            .filter_map(|nearby_dist| {
-                let saved = nearby_dist.saturating_sub(*dist).saturating_sub(2);
-                if saved > 0 {
-                    Some(saved)
-                } else {
-                    None
-                }
-            })
-            .collect::<Vec<_>>()
-        })
-        .collect::<Vec<_>>();
-    println!(
-        "number of shortcuts saving >= 100: {}",
-        shortcut_amounts
-            .into_iter()
-            .filter(|amount| *amount >= 100)
-            .count()
-    )
-}
+        .flat_map(|(pos, dist)| map.shortcut_lengths(*pos, *dist, max_cheat, min_save))
+        .count();
 
-fn shortcut_count(
-    start: Vector2<isize>,
-    dist: usize,
-    max_cheat: usize,
-    min_save: usize,
-    map: &Map,
-) -> usize {
-    let mut shortcuts = 0;
-    let mut queue = VecDeque::from([(start, 0)]);
-    let mut seen = HashSet::from([start]);
-    while let Some((current, traversed)) = queue.pop_front() {
-        for offset in [
-            Vector2::new(0, -1),
-            Vector2::new(1, 0),
-            Vector2::new(0, 1),
-            Vector2::new(-1, 0),
-        ] {
-            let next = current + offset;
-            if seen.contains(&next) {
-                continue;
-            }
-            if map.walls.contains(&next) && traversed + 1 < max_cheat {
-                queue.push_back((next, traversed + 1));
-                seen.insert(next);
-            } else if let Some(next_dist) = map.distances.get(&next).cloned() {
-                if next_dist >= dist + traversed + 1 + min_save {
-                    let saves = next_dist - (dist + traversed + 1);
-                    println!(
-                        "shortcut! from: {:?}; to: {:?}; saves: {saves}",
-                        start, next
-                    );
-                    shortcuts += 1;
-                    seen.insert(next);
-                }
-            }
-        }
-    }
-
-    shortcuts
+    println!("number of shortcuts saving >= {min_save}: {}", shortcuts)
 }
 
 fn part_2() {
     let map = Map::get_from_file();
     let max_cheat = 20;
-    let min_save = 72;
+    let min_save = 100;
 
-    let shortcut_amounts: usize = map
+    let shortcuts = map
         .distances
         .iter()
-        .map(|(pos, dist)| {
-            let count = shortcut_count(*pos, *dist, max_cheat, min_save, &map);
-            // println!("good cheats for position {:?} = {count}", pos);
-            count
-        })
-        .sum();
+        .flat_map(|(pos, dist)| map.shortcut_lengths(*pos, *dist, max_cheat, min_save))
+        .count();
+    // .counts()
+    // .into_iter()
+    // .sorted()
+    // .collect();
+
     println!(
         "number of new shortcuts saving >= {min_save}: {}",
-        shortcut_amounts
+        shortcuts
     )
 }
 
 pub fn compute() {
-    // part_1();
+    part_1();
     part_2();
 }
