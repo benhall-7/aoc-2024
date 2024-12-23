@@ -1,4 +1,5 @@
-use itertools::Itertools;
+use std::collections::HashMap;
+
 use nalgebra::Vector2;
 
 /*
@@ -70,9 +71,13 @@ impl NumPad {
     }
 
     pub fn translate(seq: Vec<Self>) -> Vec<DirPad> {
+        Self::translate_chunks(seq).into_iter().flatten().collect()
+    }
+
+    pub fn translate_chunks(seq: Vec<Self>) -> Vec<Vec<DirPad>> {
         let mut pad = Self::default();
         seq.iter()
-            .flat_map(move |input| {
+            .map(move |input| {
                 let ret = pad.operations_commit(*input);
                 pad = *input;
                 ret
@@ -153,24 +158,18 @@ impl DirPad {
     }
 
     pub fn translate(seq: Vec<Self>) -> Vec<Self> {
+        Self::translate_chunks(seq).into_iter().flatten().collect()
+    }
+
+    pub fn translate_chunks(seq: Vec<Self>) -> Vec<Vec<Self>> {
         let mut pad = Self::default();
         seq.iter()
-            .flat_map(move |input| {
+            .map(move |input| {
                 let ret = pad.operations_commit(*input);
                 pad = *input;
                 ret
             })
             .collect()
-    }
-
-    pub const fn get_char(self) -> char {
-        match self {
-            Self::ButtonA => 'A',
-            Self::ButtonUp => '^',
-            Self::ButtonRight => '>',
-            Self::ButtonDown => 'v',
-            Self::ButtonLeft => '<',
-        }
     }
 
     pub const fn get_sort_order(self) -> usize {
@@ -218,27 +217,9 @@ fn part_1() {
     let scores: usize = key_pad_buttons
         .into_iter()
         .map(|(seq, digits)| {
-            println!("DIGITS = {digits}");
             let dir_inputs_1 = NumPad::translate(seq);
-            println!(
-                "possible inputs for 1st remote: {:?}",
-                dir_inputs_1.iter().map(|b| b.get_char()).join("")
-            );
-            println!("{}", dir_inputs_1.len());
             let dir_inputs_2 = DirPad::translate(dir_inputs_1);
-            println!(
-                "possible inputs for 2nd remote: {:?}",
-                dir_inputs_2.iter().map(|b| b.get_char()).join("")
-            );
-            println!("{}", dir_inputs_2.len());
             let dir_inputs_3 = DirPad::translate(dir_inputs_2);
-            println!(
-                "possible inputs for 3rd remote: {:?}",
-                dir_inputs_3.iter().map(|b| b.get_char()).join("")
-            );
-            // <v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A
-            // v<<A>>^AvA^Av<<A>>^AAv<A<A>>^AAvAA^<A>Av<A^>AA<A>Av<A<A>>^AAA<Av>A^A
-            println!("{}", dir_inputs_3.len());
 
             let min_sequence_len = dir_inputs_3.len();
             min_sequence_len * digits
@@ -248,8 +229,60 @@ fn part_1() {
     println!("total scores: {scores}");
 }
 
-fn part_2() {
+fn count_seq(
+    remaining: usize,
+    chunk: Vec<DirPad>,
+    seen: &mut HashMap<(usize, Vec<DirPad>), usize>,
+) -> usize {
+    let key = (remaining, chunk.clone());
+    if let Some(val) = seen.get(&key) {
+        return *val;
+    }
 
+    let sum = if remaining > 0 {
+        DirPad::translate_chunks(chunk)
+            .into_iter()
+            .map(|subchunk| count_seq(remaining - 1, subchunk, seen))
+            .sum()
+    } else {
+        chunk.len()
+    };
+
+    seen.insert(key, sum);
+
+    sum
+}
+
+fn part_2() {
+    let depth = 25;
+    let key_pad_buttons = INPUT
+        .iter()
+        .map(|pass| {
+            let num = usize::from_str_radix(&pass[0..3], 10).unwrap();
+            pass.chars()
+                .map(|chr| NumPad::try_from(chr))
+                .collect::<Result<Vec<_>, _>>()
+                .map(|res| (res, num))
+        })
+        .collect::<Result<Vec<_>, _>>()
+        .expect("couldn't parse input");
+
+    let scores: usize = key_pad_buttons
+        .into_iter()
+        .map(|(seq, digits)| {
+            let chunks_1 = NumPad::translate_chunks(seq);
+            let mut seen = HashMap::new();
+
+            let min_sequence_len: usize = chunks_1
+                .into_iter()
+                .map(|chunk| count_seq(depth, chunk, &mut seen))
+                .sum();
+
+            min_sequence_len * digits
+        })
+        .sum();
+
+    println!("extended scores: {scores}");
 }
 
 pub fn compute() {
