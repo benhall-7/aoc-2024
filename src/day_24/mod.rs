@@ -1,4 +1,4 @@
-use std::collections::{HashMap, VecDeque};
+use std::collections::HashMap;
 
 use regex::Regex;
 
@@ -92,26 +92,6 @@ fn evaluate(mut solved: HashMap<String, bool>) -> usize {
         });
 
     result
-}
-
-fn translate_inputs(input_x: usize, input_y: usize) -> HashMap<String, bool> {
-    let xs = (0..=44)
-        .map(|var_num| {
-            (
-                format!("x{:0>2}", var_num),
-                (input_x & 1usize << var_num) > 0,
-            )
-        })
-        .collect::<Vec<_>>();
-    let ys = (0..=44)
-        .map(|var_num| {
-            (
-                format!("y{:0>2}", var_num),
-                (input_y & 1usize << var_num) > 0,
-            )
-        })
-        .collect::<Vec<_>>();
-    [xs, ys].into_iter().flatten().collect()
 }
 
 fn part_1() {
